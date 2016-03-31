@@ -37,8 +37,14 @@ end
 
 
 % creating normalized segments of turning function
-unitLineVec = lineVec / perimeter;
-unitInvLineVec = invLineVec / perimeter;
+unitLineVec = nan(size(lineVec));
+unitInvLineVec = nan(size(invLineVec));
+
+
+for i = 1:size(lineVec,1)
+    unitLineVec(i,:) = lineVec(i,:) / perimeter; %* (norm(lineVec(i,:)) / perimeter);
+    unitInvLineVec(i,:) = invLineVec(i,:) / perimeter; %* (norm(invLineVec(i,:)) / perimeter);
+end
 
 
 % using dot products between unit vectors to create the turning functions y
@@ -64,8 +70,8 @@ invAngles(end) = acos(dot(unitInvLineVec(nTurningPoints, :), unitInvLineVec(1,:)
 
 % summing angles to create the turning function's y values
 nAngles = length(angles);
-TF.Function.y = nan(nAngles, 1);
-TF.InvFunction.y = nan(nAngles, 1);
+TF.Function.y = nan(nAngles + 1, 1);
+TF.InvFunction.y = nan(nAngles + 1, 1);
 sum = 0;
 invSum = 0;
 for i = 1:nAngles
@@ -74,11 +80,13 @@ for i = 1:nAngles
     TF.Function.y(i) = sum;
     TF.InvFunction.y(i) = invSum;
 end
+TF.Function.y(end) = sum;
+TF.InvFunction.y(end) = invSum;
 
 
 % summing perimeter lengths for function's x values
-TF.Function.x = nan(nAngles, 1);
-TF.InvFunction.x = nan(nAngles, 1);
+TF.Function.x = nan(nAngles + 1, 1);
+TF.InvFunction.x = nan(nAngles + 1, 1);
 sum = 0;
 invSum = 0;
 
@@ -86,11 +94,15 @@ TF.Function.x(1) = 0;
 TF.InvFunction.x(1) = 0;
 
 for i = 2:nAngles
-   sum = sum + norm(unitLineVec);
+   sum = sum + norm(unitLineVec(i,:));
    invSum = invSum + norm(unitInvLineVec(i,:));
    TF.Function.x(i) = sum;
    TF.InvFunction.x(i) = invSum;
 end
+
+% closing the function on total length 1
+TF.Function.x(end) = 1;
+TF.InvFunction.x(end) = 1;
 
 
 % for interfacing purposes, matrix that hold xs and ys
